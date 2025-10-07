@@ -11,73 +11,71 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\NotificationsController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/organisation/users', [UserController::class, 'getOrganisationUsers']);
-});
-
-Route::middleware('auth:sanctum')->get('/dashboard/stats', [DashboardController::class, 'stats']);
-Route::get('/opportunities', [OpportunityController::class, 'index']);
-Route::post('/opportunities', [OpportunityController::class, 'store']);
-Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'show']);
-Route::put('/opportunities/{opportunity}', [OpportunityController::class, 'update']);
-Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy']);
-Route::get('/organisations/{organisation}/opportunities', [OpportunityController::class, 'getByOrganisation']);
-Route::get('/users/{user}/opportunities', [OpportunityController::class, 'getByCreator']);
-
+// 🔓 Public routes
 Route::post('signup', [AuthController::class, 'signup']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
-Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('organisations/{organisation}/tasks', [TaskController::class, 'getByOrganisation']);
-Route::get('users/{user}/tasks', [TaskController::class, 'getByAssignee']);
-Route::get('organisations/{organisation}/contacts', [ContactController::class, 'getByOrganisation']);
-Route::get('organisations/{organisation}/users', [UserController::class, 'getByOrganisation']);
-Route::get('tasks/{task}', [TaskController::class, 'show']);
-Route::put('users/{user}/assign-organisation', [UserController::class, 'assignOrganisation']);
+// 🔐 Protected routes (require Sanctum token)
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::post('/users', [UserController::class, 'store']);        
-Route::put('/users/{user}', [UserController::class, 'update']); 
-Route::delete('/users/{user}', [UserController::class, 'destroy']); 
+    // Auth
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/user', fn(Request $request) => $request->user());
+
+    // Dashboard
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+
+    // Organisations / Users
+    Route::get('/organisation/users', [UserController::class, 'getOrganisationUsers']);
+    Route::get('organisations/{organisation}/users', [UserController::class, 'getByOrganisation']);
+    Route::post('/organisations/{organisation}/add-user-by-email', [UserController::class, 'addUserByEmail']);
+    Route::post('/users/add-to-organisation', [UserController::class, 'addUserToOrganisation']);
+    Route::put('users/{user}/assign-organisation', [UserController::class, 'assignOrganisation']);
+    Route::apiResource('users', UserController::class)->except(['create', 'edit']);
+
+    // Invitations
+    Route::post('/organisations/{organisation}/invite', [InvitationController::class, 'sendInvite']);
+    Route::post('/invitations/accept', [InvitationController::class, 'acceptInvite']);
+
+    // Tasks
+    Route::get('organisations/{organisation}/tasks', [TaskController::class, 'getByOrganisation']);
+    Route::get('users/{user}/tasks', [TaskController::class, 'getByAssignee']);
+    Route::apiResource('tasks', TaskController::class)->except(['create', 'edit']);
+
+    // Opportunities
+    Route::get('/organisations/{organisation}/opportunities', [OpportunityController::class, 'getByOrganisation']);
+    Route::get('/users/{user}/opportunities', [OpportunityController::class, 'getByCreator']);
+    Route::apiResource('opportunities', OpportunityController::class)->except(['create', 'edit']);
+
+    // Contacts
+    Route::get('organisations/{organisation}/contacts', [ContactController::class, 'getByOrganisation']);
+    Route::apiResource('contacts', ContactController::class)->except(['create', 'edit']);
+
+    // Organisations
+    Route::apiResource('organisations', OrganisationController::class)->except(['create', 'edit']);
+
+    // Appointments
+    Route::apiResource('appointments', AppointmentController::class)->except(['create', 'edit']);
+    Route::get('/users/{user}/appointments', fn(\App\Models\User $user) => response()->json($user->appointments));
 
 
-Route::apiResource('appointments', AppointmentController::class);
 
-Route::post('/organisations/{organisation}/add-user-by-email', [UserController::class, 'addUserByEmail']);
-
-Route::post('/users/add-to-organisation', [UserController::class, 'addUserToOrganisation']);
-Route::post('/organisations/{organisation}/invite', [InvitationController::class, 'sendInvite']);
-Route::post('/invitations/accept', [InvitationController::class, 'acceptInvite']);
-
-Route::apiResource('tasks', TaskController::class);
-Route::apiResource('contacts', ContactController::class);
-Route::apiResource('organisations', OrganisationController::class);
-Route::apiResource('users', UserController::class);
-//->middleware('auth:sanctum');
-
-Route::get('/users/{user}/appointments', function (\App\Models\User $user) {
-    return response()->json($user->appointments);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('notifications', [NotificationsController::class, 'index']);
+    Route::get('notifications/unread-count', [NotificationsController::class, 'unreadCount']);
+    Route::post('notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
+    Route::post('notifications/mark-all-read', [NotificationsController::class, 'markAllRead']);
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
 });
-
-
-Route::middleware('auth:api')->group(function () {
-});
-
-
-Route::middleware('auth:sanctum')->get('/auth/me', [AuthController::class, 'me']);

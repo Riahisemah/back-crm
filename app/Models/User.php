@@ -68,6 +68,10 @@ public function tasks() {
     return $this->hasMany(Opportunity::class, 'created_by');
 }
 
+public function notifications()
+{
+    return $this->hasMany(\App\Models\UserNotification::class, 'user_id')->orderByDesc('timestamp');
+}
 
 
 }
