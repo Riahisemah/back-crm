@@ -12,6 +12,7 @@ use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\NotificationsController;
+use App\Http\Controllers\LeadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications/unread-count', [NotificationsController::class, 'unreadCount']);
     Route::post('notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
     Route::post('notifications/mark-all-read', [NotificationsController::class, 'markAllRead']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/leads', [LeadController::class, 'index']);
+    Route::post('/leads', [LeadController::class, 'store']);
+    Route::get('/leads/{lead}', [LeadController::class, 'show']);
+    Route::put('/leads/{lead}', [LeadController::class, 'update']);
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy']);
+    Route::get('/organisations/{organisation}/leads', [LeadController::class, 'getByOrganisation']);
+    Route::get('/leads/filter/search', [LeadController::class, 'filter']);
+
+
 });
 
 

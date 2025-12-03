@@ -32,6 +32,10 @@ class Organisation extends Model
     return $this->hasMany(Opportunity::class);
 }
 
+    public function leads()
+{
+    return $this->hasMany(Lead::class);
+}
 
 
 }
