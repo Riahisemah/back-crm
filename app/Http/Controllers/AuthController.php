@@ -70,13 +70,6 @@ public function login(Request $request): JsonResponse
     // Create access token
     $token = $user->createToken('api_token')->plainTextToken;
 
-    // Generate refresh token (random string)
-    $refreshTokenPlain = Str::random(60);
-
-    // Save hashed refresh token in DB
-    $user->refresh_token = hash('sha256', $refreshTokenPlain);
-    $user->save();
-
     // Return response including first_time_login flag and tokens
   return response()->json([
     'user' => [
@@ -87,7 +80,6 @@ public function login(Request $request): JsonResponse
         'first_time_login' => $firstTimeLogin,
     ],
     'token' => $token,
-    'refreshToken' => $refreshTokenPlain,
     'first_time_login' => $firstTimeLogin,
 ]);
 /*
@@ -112,33 +104,6 @@ public function login(Request $request): JsonResponse
 
 
 
-public function refresh(Request $request): JsonResponse
-{
-    $validated = $request->validate([
-        'refresh_token' => 'required|string',
-    ]);
-
-    $hashed = hash('sha256', $validated['refresh_token']);
-
-    $user = User::where('refresh_token', $hashed)->first();
-
-    if (!$user) {
-        return response()->json(['message' => 'Invalid refresh token.'], 401);
-    }
-
-    // Generate a new access token
-    $newToken = $user->createToken('api_token')->plainTextToken;
-
-    // Rotate the refresh token (optional but more secure)
-    $newRefreshToken = Str::random(60);
-    $user->refresh_token = hash('sha256', $newRefreshToken);
-    $user->save();
-
-    return response()->json([
-        'token' => $newToken,
-        'refreshToken' => $newRefreshToken,
-    ]);
-}
 
 
 

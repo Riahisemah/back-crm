@@ -22,7 +22,7 @@ class EmailCampaignController extends Controller
     'content' => 'required|string',
     'schedule' => 'required|in:now,later',
     'schedule_time' => 'required_if:schedule,later|nullable|date|after:now',
-    'sender' => 'required|email', // add this
+    'sender' => 'required|exists:users,id',
 ]);
 
 

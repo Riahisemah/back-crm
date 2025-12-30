@@ -24,4 +24,12 @@ class EmailCampaign extends Model
         'audience' => 'array',
         'schedule_time' => 'datetime',
     ];
+
+    /**
+     * Get the user that owns the campaign.
+     */
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender');
+    }
 }

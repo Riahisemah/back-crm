@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Organisation;
+use App\Models\EmailProvider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
@@ -166,5 +167,37 @@ class UserController extends Controller
             'message' => 'User successfully added to the organisation.',
             'user' => $user,
         ], 200);
+    }
+
+    /**
+     * Get the user's email provider.
+     */
+    public function getEmailProvider(): JsonResponse
+    {
+        $user = Auth::user();
+        $emailProvider = EmailProvider::where('user_id', $user->id)->first();
+
+        if (!$emailProvider) {
+            return response()->json(['message' => 'No email provider connected'], 404);
+        }
+
+        return response()->json($emailProvider, 200);
+    }
+
+    /**
+     * Delete the user's email provider.
+     */
+    public function deleteEmailProvider(): JsonResponse
+    {
+        $user = Auth::user();
+        $emailProvider = EmailProvider::where('user_id', $user->id)->first();
+
+        if (!$emailProvider) {
+            return response()->json(['message' => 'No email provider connected'], 404);
+        }
+
+        $emailProvider->delete();
+
+        return response()->json(['message' => 'Email provider disconnected successfully'], 200);
     }
 }

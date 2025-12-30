@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\EmailCampaignController;
+use App\Http\Controllers\EmailProviderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,10 +22,19 @@ use App\Http\Controllers\EmailCampaignController;
 |--------------------------------------------------------------------------
 */
 
+
+
+Route::middleware(['auth:sanctum', 'web'])->group(function () {
+    Route::prefix('email-provider')->group(function () {
+        Route::get('/{provider}/redirect', [EmailProviderController::class, 'redirect']);
+        // Keep callback in web routes for redirect
+    });
+});
+
+
 // 🔓 Public routes
 Route::post('signup', [AuthController::class, 'signup']);
 Route::post('login', [AuthController::class, 'login']);
-Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
 // 🔐 Protected routes (require Sanctum token)
 Route::middleware('auth:sanctum')->group(function () {
@@ -33,6 +43,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::get('/user', fn(Request $request) => $request->user());
+
+    // User Email Provider Connection
+    Route::get('/user/email-provider', [UserController::class, 'getEmailProvider']);
+    Route::delete('/user/email-provider', [UserController::class, 'deleteEmailProvider']);
 
     // Dashboard
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
@@ -87,11 +101,38 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/leads/{lead}', [LeadController::class, 'update']);
     Route::delete('/leads/{lead}', [LeadController::class, 'destroy']);
     Route::get('/organisations/{organisation}/leads', [LeadController::class, 'getByOrganisation']);
-    Route::get('/leads/filter/search', [LeadController::class, 'filter']);
+    Route::post('/leads/filter', [LeadController::class, 'filter']);
+
+// To this:
+Route::patch('/leads/{lead}/treated', [LeadController::class, 'markAsTreated']);
+Route::patch('/leads/{lead}/untreated', [LeadController::class, 'markAsUntreated']);
 
 
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Add these to your existing email-provider routes
+    Route::prefix('email-provider')->group(function () {
+        Route::get('/test-connection', [EmailProviderController::class, 'testConnection']);
+        Route::post('/send-test-email', [EmailProviderController::class, 'sendTestEmail']);
+        Route::post('/refresh-token', [EmailProviderController::class, 'refreshToken']);
+    });
+});
+
     Route::post('/email-campaigns', [EmailCampaignController::class, 'store']);
+
+
+Route::middleware('auth:sanctum')->group(function () {    
+    // Google OAuth routes
+    Route::get('/email-providers/{provider}/redirect', [EmailProviderController::class, 'redirect']);
+    Route::get('/email-providers/{provider}/callback', [EmailProviderController::class, 'callback']);
+    Route::post('/email-providers/{provider}/disconnect', [EmailProviderController::class, 'disconnect']);
+    Route::get('/email-providers/{provider}/status', [EmailProviderController::class, 'getConnectionStatus']);
+    // Test routes
+    Route::get('/email-providers/test-connection', [EmailProviderController::class, 'testConnection']);
+    Route::post('/email-providers/send-test-email', [EmailProviderController::class, 'sendTestEmail']);
+    Route::post('/email-providers/refresh-token', [EmailProviderController::class, 'refreshToken']);
+});
 
 
 });

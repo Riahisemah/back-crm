@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class LeadController extends Controller
 {
-    /**
-     * Filter leads
-     */
     public function filter(Request $request)
     {
         $organisationId = $request->user()->organisation_id;
@@ -58,9 +55,6 @@ class LeadController extends Controller
         ]);
     }
 
-    /**
-     * List leads by organisation
-     */
     public function index(Request $request)
     {
         $organisationId = $request->user()->organisation_id;
@@ -70,9 +64,6 @@ class LeadController extends Controller
             ->get();
     }
 
-    /**
-     * Store a lead
-     */
     public function store(Request $request)
     {
         $organisationId = $request->user()->organisation_id;
@@ -91,6 +82,8 @@ class LeadController extends Controller
             'message_length'   => 'nullable|integer',
             'generated_at'     => 'nullable|date',
             'total_leads'      => 'nullable|integer',
+            'comments'         => 'nullable|string',
+            'status'           => 'nullable|in:to_be_treated,qualified,archived',
         ]);
 
         $data['organisation_id'] = $organisationId;
@@ -100,9 +93,6 @@ class LeadController extends Controller
         return response()->json($lead, 201);
     }
 
-    /**
-     * Show single lead
-     */
     public function show(Request $request, Lead $lead)
     {
         $this->authorizeOrg($request, $lead);
@@ -110,9 +100,6 @@ class LeadController extends Controller
         return $lead;
     }
 
-    /**
-     * Update lead
-     */
     public function update(Request $request, Lead $lead)
     {
         $this->authorizeOrg($request, $lead);
@@ -131,6 +118,8 @@ class LeadController extends Controller
             'message_length'   => 'sometimes|nullable|integer',
             'generated_at'     => 'sometimes|nullable|date',
             'total_leads'      => 'sometimes|nullable|integer',
+            'comments'         => 'sometimes|nullable|string',
+            'status'           => 'sometimes|in:to_be_treated,qualified,archived',
         ]);
 
         $lead->update($data);
@@ -138,9 +127,6 @@ class LeadController extends Controller
         return $lead;
     }
 
-    /**
-     * Delete lead
-     */
     public function destroy(Request $request, Lead $lead)
     {
         $this->authorizeOrg($request, $lead);
@@ -150,9 +136,6 @@ class LeadController extends Controller
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Leads by organisation (admin / internal use)
-     */
     public function getByOrganisation(Request $request, $organisationId)
     {
         if ($request->user()->organisation_id !== (int) $organisationId) {
@@ -168,13 +151,49 @@ class LeadController extends Controller
         ]);
     }
 
-    /**
-     * Organisation authorization
-     */
     private function authorizeOrg(Request $request, Lead $lead)
     {
         if ($lead->organisation_id !== $request->user()->organisation_id) {
             abort(403, 'Unauthorized');
         }
     }
+
+    /**
+     * Replace old "treated" logic
+     * Mark as QUALIFIED
+     */
+   /**
+ * Mark a lead as treated (boolean flag)
+ */
+public function markAsTreated(Request $request, Lead $lead)
+{
+    $this->authorizeOrg($request, $lead);
+
+    $lead->update([
+        'treated' => true,
+    ]);
+
+    return response()->json([
+        'status' => 'success',
+        'lead'   => $lead,
+    ]);
+}
+
+/**
+ * Optional: mark as untreated
+ */
+public function markAsUntreated(Request $request, Lead $lead)
+{
+    $this->authorizeOrg($request, $lead);
+
+    $lead->update([
+        'treated' => false,
+    ]);
+
+    return response()->json([
+        'status' => 'success',
+        'lead'   => $lead,
+    ]);
+}
+
 }
