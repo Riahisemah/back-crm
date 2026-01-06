@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\EmailCampaignController;
 use App\Http\Controllers\EmailProviderController;
+use App\Http\Controllers\EmailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,5 +135,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email-providers/refresh-token', [EmailProviderController::class, 'refreshToken']);
 });
 
+
+
+// Email sending routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('email')->group(function () {
+        // Send email to a specific lead
+        Route::post('/send-to-lead/{lead}', [EmailController::class, 'sendToLead']);
+        
+        // Send bulk emails to multiple leads
+        Route::post('/send-bulk', [EmailController::class, 'sendBulkEmails']);
+        
+        // Send custom email to any recipient
+        Route::post('/send-custom', [EmailController::class, 'sendCustomEmail']);
+        
+        // Get email history for a lead
+        Route::get('/history/{lead}', [EmailController::class, 'getLeadEmailHistory']);
+        
+        // Check email sending capability
+        Route::get('/check-capability', [EmailController::class, 'checkEmailCapability']);
+    });
+});
 
 });

@@ -54,7 +54,7 @@ return [
     | your application so that it is used when running Artisan tasks.
     |
     */
-  'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+    'frontend_url' => env('FRONTEND_URL', 'https://crm.g-digitalpartner.com'),
     'url' => env('APP_URL', 'http://localhost:8000'),
 
     'asset_url' => env('ASSET_URL'),
