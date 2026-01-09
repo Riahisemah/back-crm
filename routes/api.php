@@ -16,6 +16,7 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\EmailCampaignController;
 use App\Http\Controllers\EmailProviderController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\ScheduledEmailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -155,6 +156,43 @@ Route::middleware('auth:sanctum')->group(function () {
         // Check email sending capability
         Route::get('/check-capability', [EmailController::class, 'checkEmailCapability']);
     });
+});
+
+
+// Add these to your existing routes file, inside the auth:sanctum middleware group
+
+Route::prefix('scheduled-emails')->group(function () {
+    // Schedule single email
+    Route::post('/schedule-single', [ScheduledEmailController::class, 'scheduleSingleEmail']);
+    
+    // Schedule bulk emails
+    Route::post('/schedule-bulk', [ScheduledEmailController::class, 'scheduleBulkEmails']);
+    
+    // Get scheduled emails
+    Route::get('/', [ScheduledEmailController::class, 'getScheduledEmails']);
+    
+    // Get scheduled email details
+    Route::get('/{scheduledEmail}', [ScheduledEmailController::class, 'getScheduledEmailDetails']);
+    
+    // Update scheduled email
+    Route::put('/{scheduledEmail}', [ScheduledEmailController::class, 'updateScheduledEmail']);
+    
+    // Cancel scheduled email
+    Route::post('/{scheduledEmail}/cancel', [ScheduledEmailController::class, 'cancelScheduledEmail']);
+});
+
+Route::prefix('campaigns')->group(function () {
+    // Get campaigns
+    Route::get('/', [ScheduledEmailController::class, 'getCampaigns']);
+    
+    // Get campaign details
+    Route::get('/{campaign}', [ScheduledEmailController::class, 'getCampaignDetails']);
+    
+    // Update campaign
+    Route::put('/{campaign}', [ScheduledEmailController::class, 'updateCampaign']);
+    
+    // Cancel campaign
+    Route::post('/{campaign}/cancel', [ScheduledEmailController::class, 'cancelCampaign']);
 });
 
 });
